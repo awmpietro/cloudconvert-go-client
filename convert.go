@@ -21,6 +21,7 @@ func Boot(data map[string]string) {
 	data["filePath"] = ""
 	data["fileName"] = ""
 	data["outputFmt"] = ""
+
 	data["input"] = ""
 	data["mode"] = ""
 	data["pathToSave"] = ""
