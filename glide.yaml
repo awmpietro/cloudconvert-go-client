@@ -1,3 +1,0 @@
-package: bitbucket.org/awmpietro@gmail.com/go-pdf-translate
-import:
-- package: github.com/BurntSushi/toml

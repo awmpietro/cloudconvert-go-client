@@ -7,47 +7,75 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	"github.com/BurntSushi/toml"
 )
 
-func main() {
-	var cnf Data
-	if _, err := toml.DecodeFile("config.toml", &cnf); err != nil {
-		fmt.Println(err)
-		return
+//Boot
+func Boot(data map[string]string) {
+	processUrl := "https://api.cloudconvert.com/process"
+	//Example:
+	data = make(map[string]string)
+	data["key"] = ""
+	data["from"] = ""
+	data["to"] = ""
+	data["filePath"] = ""
+	data["filePath"] = ""
+	data["fileName"] = ""
+	data["outputFmt"] = ""
+	data["input"] = ""
+	data["mode"] = ""
+	data["pathToSave"] = ""
+	if data["input"] == "" {
+		data["input"] = "download"
 	}
-	//Process 1
-	process := Process{
-		Apikey:       cnf.Key,
-		Mode:         "convert",
-		InputFormat:  cnf.ConvertFrom,
-		OutputFormat: cnf.ConvertTo,
+	if data["mode"] == "" {
+		data["mode"] = "convert"
 	}
-	processJson, err := json.Marshal(process)
+	if data["pathToSave"] == "" {
+		data["pathToSave"] = "/"
+	}
 
-	resp, err := http.Post(cnf.ProcessUrl, "application/json", bytes.NewReader(processJson))
-	defer resp.Body.Close()
+	process := Process{
+		Apikey:       data["key"],
+		Mode:         data["mode"],
+		InputFormat:  data["from"],
+		OutputFormat: data["to"],
+	}
+	processJSON, err := json.Marshal(process)
 	if err != nil {
 		fmt.Println("Erro: ", err)
 	}
+
+	resp, err := http.Post(processUrl, "application/json", bytes.NewReader(processJSON))
+
+	if err != nil {
+		fmt.Println("Erro: ", err)
+	}
+	defer resp.Body.Close()
 	//Unmarshall json to Go Struct
 	var processResponse ProcessResponse
 	err = json.NewDecoder(resp.Body).Decode(&processResponse)
 	if err != nil {
 		fmt.Println("Erro: ", err)
 	}
-	//fmt.Println(processResponse.Url)
-	//Process 2
+
+	processStart(processResponse, data)
+
+}
+
+//ProcessStart
+func processStart(processResponse ProcessResponse, data map[string]string) {
 	processStart := ProcessStart{
 		Wait:         true,
-		Input:        "download",
-		File:         cnf.FileToConvertPath,
-		Filename:     cnf.FileToConvertName,
-		Outputformat: "png",
+		Input:        data["input"],
+		File:         data["filePath"],
+		Filename:     data["fileName"],
+		Outputformat: data["outputFmt"],
 	}
-	processJsonStart, err := json.Marshal(processStart)
-	resp, err = http.Post("https:"+processResponse.Url, "application/json", bytes.NewReader(processJsonStart))
+	processJSONStart, err := json.Marshal(processStart)
+	if err != nil {
+		fmt.Println("Erro: ", err)
+	}
+	resp, err := http.Post("https:"+processResponse.Url, "application/json", bytes.NewReader(processJSONStart))
 
 	if err != nil {
 		fmt.Println("Erro: ", err)
@@ -59,11 +87,27 @@ func main() {
 	if err != nil {
 		fmt.Println("Erro: ", err)
 	}
-	out, err := os.Create("./" + processStartResponse.Output.Filename)
+
+	fileDownload(processStartResponse, data)
+}
+
+//fileDownload
+func fileDownload(processStartResponse ProcessStartResponse, data map[string]string) error {
+	out, err := os.Create(data["pathToSave"] + processStartResponse.Output.Filename)
+	if err != nil {
+		fmt.Println("Erro: ", err)
+		return err
+	}
 	defer out.Close()
-	resp, err = http.Get("https:" + processStartResponse.Output.Url)
+	resp, err := http.Get("https:" + processStartResponse.Output.Url)
+	if err != nil {
+		fmt.Println("Erro: ", err)
+		return err
+	}
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		fmt.Println("Erro: ", err)
+		return err
 	}
+	return nil
 }

@@ -1,6 +1,0 @@
-processurl =        "https://api.cloudconvert.com/process"
-key =               ""
-filetoconvertpath = ""
-filetoconvertname = ""
-convertfrom =       ""
-convertto =         ""
