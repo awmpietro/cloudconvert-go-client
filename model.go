@@ -1,4 +1,4 @@
-package main
+package cloudconvgocl
 
 type Data struct {
 	Key               string `toml:"key"`
