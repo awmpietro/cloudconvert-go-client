@@ -1,8 +1,8 @@
-# Cloudconvert Go Client
+# Cloudconvert Go Client for Cloudconvert
 
-**Um simples cliente escrito em Go para a API do CloudConvert**
+**A simple client written in Go for the Cloudconvert app API **
 
-## Exemplo de uso:
+## Use example:
 ```
 //main.go
 package main
@@ -32,4 +32,4 @@ func main() {
 }
 ```
 ### TODO:
-Mais opções de configuração da conversão
+More options conversion config
